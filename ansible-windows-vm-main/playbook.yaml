@@ -1,0 +1,15 @@
+- name: Create windows 10 VM 
+  hosts: localhost
+  gather_facts: yes
+  become: yes
+  vars:
+    vm_name: win10vm
+    vm_vcpus: 4
+    vm_ram_mb: 8192
+    vm_disk_size: 50
+    cleanup_tmp: no
+
+  tasks:
+    - name: Create VM role
+      include_role:
+        name: win10vm

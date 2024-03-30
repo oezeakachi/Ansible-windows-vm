@@ -1,0 +1,38 @@
+---
+- name: Ensure requirements in place
+  package:
+    name:
+      - guestfs-tools
+      - python3-libvirt
+    state: present
+  become: yes
+- name: Get VMs list
+  community.libvirt.virt:
+    command: list_vms
+  register: existing_vms
+  changed_when: no
+- name: Create VM if not exists
+  block:
+  - name: Download base image
+    get_url:
+      url: "DOWNLOAD THE BASE IMAGE"
+      dest: "/tmp/{{ base_image_name }}"
+      checksum: "sha256:{{ base_image_sha }}"
+  - name: Download the virt drivers
+    get_url:
+      url: "{{ virtio_url }}"
+      dest: "/tmp/{{ virtio_name }}"
+      checksum: "sha256:{{ virtio_sha }}"
+  - name: Install the image
+    command: |
+      virt-install \
+      --name {{ vm_name }} \
+      --vcpus {{ vm_vcpus }}
+      --disk size={{ vm_disk_size }}
+      --os-variant win10
+      --memory {{ vm_ram_mb }}
+      --cdrom /tmp/{{ base_image_name }}
+      --disk path=/tmp/{{ virtio_name }},device=cdrom
+  when: "vm_name not in existing_vms.list_vms"
+
+# TODO: figure out how to script the qemu guest install
